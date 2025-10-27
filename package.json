@@ -1,0 +1,15 @@
+{
+  "name": "sdas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "worker.js",
+  "scripts": {
+    "start-poller": "node poller.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wrangler": "^4.45.0",
+    "node-fetch": "^2.6.9"
+  }
+}
