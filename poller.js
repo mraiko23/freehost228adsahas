@@ -5,7 +5,7 @@
 const fetch = require('node-fetch');
 const http = require('http');
 
-const WORKER_URL = process.env.WORKER_URL || 'https://proud-star-083b.karovakorovnin.workers.dev';
+const WORKER_URL = process.env.WORKER_URL || 'https://adad412adasdasdadsasd233s.onrender.com';
 const STOCK_API_URL = process.env.STOCK_API_URL || 'https://plantsvsbrainrotsstocktracker.com/api/stock?since=0';
 const INTERVAL_MS = parseInt(process.env.INTERVAL_MS, 10) || 2000; // 2 seconds default
 const PORT = parseInt(process.env.PORT, 10) || 3000;
@@ -72,6 +72,7 @@ process.on('SIGTERM', () => {
   clearInterval(intervalHandle);
   server.close(() => process.exit(0));
 });
+
 
 
 
