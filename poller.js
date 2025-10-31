@@ -35,10 +35,11 @@ async function fetchWithRetries(url, options = {}, retries = 2, backoffMs = 500)
 }
 
 async function handleStockData(data) {
-  const updatedAt = (data && (data.updatedAt || data.reportedAt || data.reported_at)) ? Number(data.updatedAt || data.reportedAt || data.reported_at) : null;
+  // Only react to reportedAt (or reported_at). Ignore any updatedAt fields.
+  const reportedAt = (data && (data.reportedAt || data.reported_at)) ? Number(data.reportedAt || data.reported_at) : null;
 
-  if (updatedAt && lastUpdatedAt && updatedAt !== lastUpdatedAt) {
-    console.log(new Date().toISOString(), 'Detected updatedAt change:', lastUpdatedAt, '->', updatedAt);
+  if (reportedAt && lastUpdatedAt && reportedAt !== lastUpdatedAt) {
+    console.log(new Date().toISOString(), 'Detected reportedAt change:', lastUpdatedAt, '->', reportedAt);
     try {
       const r = await fetch(`${WORKER_URL}/force-check`);
       console.log(new Date().toISOString(), '/force-check status:', r.status);
@@ -47,10 +48,10 @@ async function handleStockData(data) {
     }
   }
 
-  if (updatedAt && lastUpdatedAt === null) {
-    console.log(new Date().toISOString(), 'Initial updatedAt set to', updatedAt);
+  if (reportedAt && lastUpdatedAt === null) {
+    console.log(new Date().toISOString(), 'Initial reportedAt set to', reportedAt);
   }
-  if (updatedAt) lastUpdatedAt = updatedAt;
+  if (reportedAt) lastUpdatedAt = reportedAt;
 }
 
 async function fetchStockOnce() {
