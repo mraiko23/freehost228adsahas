@@ -6,7 +6,8 @@ const fetch = require('node-fetch');
 const http = require('http');
 
 const WORKER_URL = process.env.WORKER_URL || 'https://adad412adasdasdadsasd233s.onrender.com';
-const STOCK_API_URL = process.env.STOCK_API_URL || 'https://plantsvsbrainrotsstocktracker.com/api/stock?since=0';
+// Default to plantsvsbrainrot seed-shop API; can be overridden with env STOCK_API_URL
+const STOCK_API_URL = process.env.STOCK_API_URL || 'https://plantsvsbrainrot.com/api/seed-shop.php?ts=0';
 const INTERVAL_MS = parseInt(process.env.INTERVAL_MS, 10) || 2000; // 2 seconds default
 const PORT = parseInt(process.env.PORT, 10) || 3000;
 
@@ -23,7 +24,8 @@ async function fetchStockOnce() {
       return;
     }
     const data = await res.json();
-    const updatedAt = data && data.updatedAt ? Number(data.updatedAt) : null;
+    // Support multiple API shapes: prefer updatedAt, then reportedAt, then reported_at
+    const updatedAt = (data && (data.updatedAt || data.reportedAt || data.reported_at)) ? Number(data.updatedAt || data.reportedAt || data.reported_at) : null;
 
     if (updatedAt && lastUpdatedAt && updatedAt !== lastUpdatedAt) {
       console.log(new Date().toISOString(), 'Detected updatedAt change:', lastUpdatedAt, '->', updatedAt);
@@ -72,7 +74,6 @@ process.on('SIGTERM', () => {
   clearInterval(intervalHandle);
   server.close(() => process.exit(0));
 });
-
 
 
 
