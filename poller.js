@@ -13,6 +13,7 @@ const PORT = parseInt(process.env.PORT, 10) || 3000;
 
 let lastUpdatedAt = null;
 let inFlight = false;
+let forceCheckInFlight = false;
 
 const STOCK_AUTH_HEADER = process.env.STOCK_AUTH_HEADER || null; // e.g. 'Authorization'
 const STOCK_AUTH_TOKEN = process.env.STOCK_AUTH_TOKEN || null; // e.g. 'Bearer xxxx'
@@ -40,11 +41,22 @@ async function handleStockData(data) {
 
   if (reportedAt && lastUpdatedAt && reportedAt !== lastUpdatedAt) {
     console.log(new Date().toISOString(), 'Detected reportedAt change:', lastUpdatedAt, '->', reportedAt);
-    try {
-      const r = await fetch(`${WORKER_URL}/force-check`);
-      console.log(new Date().toISOString(), '/force-check status:', r.status);
-    } catch (err) {
-      console.error(new Date().toISOString(), 'Error calling /force-check:', err && err.message ? err.message : err);
+    // Avoid triggering multiple concurrent force-checks: set lastUpdatedAt early
+    // and use an in-flight guard so the same reportedAt doesn't cause repeated calls.
+    if (!forceCheckInFlight) {
+      forceCheckInFlight = true;
+      // Set locally to prevent subsequent polls from re-triggering for the same reportedAt
+      lastUpdatedAt = reportedAt;
+      try {
+        const r = await fetch(`${WORKER_URL}/force-check`);
+        console.log(new Date().toISOString(), '/force-check status:', r.status);
+      } catch (err) {
+        console.error(new Date().toISOString(), 'Error calling /force-check:', err && err.message ? err.message : err);
+      } finally {
+        forceCheckInFlight = false;
+      }
+    } else {
+      console.log(new Date().toISOString(), 'Force-check already in flight; skipping duplicate trigger');
     }
   }
 
